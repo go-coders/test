@@ -1,0 +1,79 @@
+{
+  "fetch_time": "2025-01-17T19:50:53.160680+08:00",
+  "category_id": 36,
+  "category_slug": "welfare",
+  "tag": "抽奖",
+  "category_name": "福利羊毛",
+  "total_topics": 1,
+  "topics": [
+    {
+      "id": 371952,
+      "title": "【接玉抛砖再引玉】周年庆抽奖&新年抽奖同时进行！",
+      "created_at": "2025-01-17T15:46:54.873000+08:00",
+      "last_posted_at": "2025-01-17T19:48:20.812000+08:00",
+      "views": 884,
+      "posts_count": 546,
+      "likes": 99,
+      "reply_count": 3,
+      "highest_post_number": 546,
+      "image_url": null,
+      "bumped": true,
+      "bumped_at": "2025-01-17T11:48:20.812Z",
+      "unseen": false,
+      "pinned": false,
+      "pinned_globally": false,
+      "visible": true,
+      "closed": false,
+      "archived": false,
+      "bookmarked": null,
+      "liked": null,
+      "tags": [
+        "抽奖",
+        "2025年"
+      ],
+      "tags_descriptions": {},
+      "category_id": 36,
+      "has_accepted_answer": false,
+      "can_have_answer": false,
+      "posters": [
+        {
+          "extras": null,
+          "description": "原始发帖人",
+          "user_id": 34593,
+          "primary_group_id": null,
+          "flair_group_id": 13
+        },
+        {
+          "extras": null,
+          "description": "频繁发帖人",
+          "user_id": 31370,
+          "primary_group_id": null,
+          "flair_group_id": null
+        },
+        {
+          "extras": null,
+          "description": "频繁发帖人",
+          "user_id": 3513,
+          "primary_group_id": null,
+          "flair_group_id": 13
+        },
+        {
+          "extras": null,
+          "description": "频繁发帖人",
+          "user_id": 26863,
+          "primary_group_id": null,
+          "flair_group_id": null
+        },
+        {
+          "extras": "latest",
+          "description": "最新发帖人",
+          "user_id": 29159,
+          "primary_group_id": null,
+          "flair_group_id": 13
+        }
+      ],
+      "participants": [],
+      "url": "https://linux.do/t/topic/371952"
+    }
+  ]
+}
