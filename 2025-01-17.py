@@ -1,8 +1,15 @@
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import time
+
+# Configuration
+DAYS = 3  # Number of days to fetch topics from
+CATEGORY_ID = 36
+CATEGORY_SLUG = 'welfare'
+TAG = '抽奖'
+OUTPUT_FILE = 'linux_do_lottery.json'
 
 class LinuxDoDiscourse:
     def __init__(self):
@@ -12,19 +19,20 @@ class LinuxDoDiscourse:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
 
-    def get_latest_topics(self, category_id=36, category_slug='welfare', tag='抽奖'):
-        """Get today's latest topics from specified category with lottery tag"""
+    def get_latest_topics(self, category_id=CATEGORY_ID, category_slug=CATEGORY_SLUG, tag=TAG, days=DAYS):
+        """Get topics from specified category with lottery tag within specified days"""
         page = 0
         all_topics = []
         
         # Get current Beijing time
         beijing_tz = pytz.timezone('Asia/Shanghai')
-        utc_now = datetime.now(pytz.UTC)  # Use datetime.now(UTC) instead of utcnow()
+        utc_now = datetime.now(pytz.UTC)
         beijing_now = utc_now.astimezone(beijing_tz)
         today = beijing_now.strftime('%Y-%m-%d')
+        start_date = (beijing_now - timedelta(days=days-1)).strftime('%Y-%m-%d')
         
         print(f"Current Beijing time: {beijing_now}")
-        print(f"Today's date: {today}")
+        print(f"Fetching topics from {start_date} to {today}")
         print(f"Fetching topics from category ID {category_id} (福利羊毛) with tag: {tag}")
         
         while True:
@@ -42,7 +50,7 @@ class LinuxDoDiscourse:
                     print(f"No topics found on page {page}")
                     break
                 
-                found_today_topic = False
+                found_topic_in_range = False
                 found_older_unpinned = False
                 print(f"Found {len(topics)} topics on page {page}")
                 
@@ -63,13 +71,14 @@ class LinuxDoDiscourse:
                         print("Skipping pinned topic...")
                         continue
                     
-                    # If we find a non-pinned topic from before today, mark it
-                    if created_date < today:
+                    # If we find a non-pinned topic from before our date range, mark it
+                    if created_date < start_date:
                         found_older_unpinned = True
-                        print(f"Found older unpinned topic from {created_date}")
+                        print(f"Found topic older than {start_date}, stopping...")
+                        break
                     
-                    if created_date == today:
-                        found_today_topic = True
+                    if start_date <= created_date <= today:
+                        found_topic_in_range = True
                         last_posted_at_utc = datetime.fromisoformat(topic['last_posted_at'].replace('Z', '+00:00')) if topic.get('last_posted_at') else created_at_utc
                         last_posted_at_beijing = last_posted_at_utc.astimezone(beijing_tz)
                         
@@ -104,15 +113,14 @@ class LinuxDoDiscourse:
                             'url': f"{self.base_url}/t/{topic.get('slug', '')}/{topic['id']}"
                         }
                         all_topics.append(formatted_topic)
-                        print(f"Found today's lottery topic: {topic['title']} (created at {created_at_beijing.strftime('%H:%M:%S')})")
+                        print(f"Found topic in range: {topic['title']} (created at {created_at_beijing.strftime('%H:%M:%S')})")
                 
-                # Only stop if we found an older unpinned topic and no today's topics on this page
-                if found_older_unpinned and not found_today_topic:
-                    print("\nFound older unpinned topics and no today's topics, stopping...")
+                # Stop if we found a topic older than our date range
+                if found_older_unpinned:
                     break
                 
-                if not found_today_topic:
-                    print("\nNo today's topics found on this page, continuing to next page...")
+                if not found_topic_in_range:
+                    print("\nNo topics found in date range on this page, continuing to next page...")
                 
                 page += 1
                 time.sleep(1)  # Add delay to avoid rate limiting
@@ -145,33 +153,38 @@ class LinuxDoDiscourse:
             print(f"Error fetching topic content: {e}")
             return None
 
-def save_data(topics, category_id=36, category_slug='welfare', tag='抽奖'):
+def save_data(topics, category_id=CATEGORY_ID, category_slug=CATEGORY_SLUG, tag=TAG, days=DAYS):
     # Get current Beijing time
     beijing_tz = pytz.timezone('Asia/Shanghai')
-    utc_now = datetime.now(pytz.UTC)  # Use datetime.now(UTC) instead of utcnow()
+    utc_now = datetime.now(pytz.UTC)
     beijing_now = utc_now.astimezone(beijing_tz)
-    current_time = beijing_now.strftime('%Y-%m-%d_%H-%M-%S')
+    today = beijing_now.strftime('%Y-%m-%d')
+    start_date = (beijing_now - timedelta(days=days-1)).strftime('%Y-%m-%d')
     
     data = {
         'fetch_time': beijing_now.isoformat(),
         'category_id': category_id,
         'category_slug': category_slug,
         'tag': tag,
+        'days': days,
+        'date_range': {
+            'start': start_date,
+            'end': today
+        },
         'category_name': '福利羊毛',
         'total_topics': len(topics),
         'topics': topics
     }
     
-    filename = f'linux_do_lottery.json'
-    with open(filename, 'w', encoding='utf-8') as f:
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved {len(topics)} lottery topics to {filename}")
+    print(f"\nSaved {len(topics)} lottery topics to {OUTPUT_FILE}")
 
 def main():
     discourse = LinuxDoDiscourse()
-    topics = discourse.get_latest_topics(category_id=36, category_slug='welfare', tag='抽奖')
-    print(f"\nFound {len(topics)} latest lottery topics in 福利羊毛 category")
-    save_data(topics, category_id=36, category_slug='welfare', tag='抽奖')
+    topics = discourse.get_latest_topics()
+    print(f"\nFound {len(topics)} lottery topics in 福利羊毛 category within {DAYS} days")
+    save_data(topics)
 
 if __name__ == "__main__":
     main()
